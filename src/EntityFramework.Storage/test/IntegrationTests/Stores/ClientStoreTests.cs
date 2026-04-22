@@ -26,7 +26,7 @@ public class ClientStoreTests : IntegrationTest<ClientStoreTests, ConfigurationD
 {
     public ClientStoreTests(DatabaseProviderFixture<ConfigurationDbContext> fixture) : base(fixture)
     {
-        foreach (var options in TestDatabaseProviders.SelectMany(x => x.Select(y => (DbContextOptions<ConfigurationDbContext>) y)).ToList())
+        foreach (var options in ((IEnumerable<DbContextOptions<ConfigurationDbContext>>)TestDatabaseProviders).ToList())
         {
             using (var context = new ConfigurationDbContext(options, StoreOptions))
             {
