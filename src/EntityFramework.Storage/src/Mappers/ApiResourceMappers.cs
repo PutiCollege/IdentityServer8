@@ -85,7 +85,7 @@ namespace IdentityServer8.EntityFramework.Mappers
             if (!string.IsNullOrWhiteSpace(value))
             {
                 value = value.Trim();
-                foreach (var item in value.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries).Distinct())
+                foreach (var item in value.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries))
                 {
                     list.Add(item);
                 }
