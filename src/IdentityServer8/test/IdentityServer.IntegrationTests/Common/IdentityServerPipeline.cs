@@ -19,6 +19,7 @@ using System.Security.Claims;
 using System.Threading;
 using System.Threading.Tasks;
 using FluentAssertions;
+using IdentityModel;
 using IdentityModel.Client;
 using IdentityServer8;
 using IdentityServer8.Configuration;
@@ -328,6 +329,32 @@ public class IdentityServerPipeline
         string codeChallengeMethod = null,
         object extra = null)
     {
+        // When responseType is null we need to build the URL manually, because
+        // IdentityModel 7.x CreateAuthorizeUrl calls AddRequired for responseType
+        // which throws ArgumentException before the request reaches the server.
+        // Use Parameters with AddOptional to allow testing missing required params.
+        if (responseType == null)
+        {
+            var p = new Parameters();
+            p.AddOptional(OidcConstants.AuthorizeRequest.ClientId, clientId);
+            p.AddOptional(OidcConstants.AuthorizeRequest.Scope, scope);
+            p.AddOptional(OidcConstants.AuthorizeRequest.RedirectUri, redirectUri);
+            p.AddOptional(OidcConstants.AuthorizeRequest.State, state);
+            p.AddOptional(OidcConstants.AuthorizeRequest.Nonce, nonce);
+            p.AddOptional(OidcConstants.AuthorizeRequest.LoginHint, loginHint);
+            p.AddOptional(OidcConstants.AuthorizeRequest.AcrValues, acrValues);
+            p.AddOptional(OidcConstants.AuthorizeRequest.ResponseMode, responseMode);
+            p.AddOptional(OidcConstants.AuthorizeRequest.CodeChallenge, codeChallenge);
+            p.AddOptional(OidcConstants.AuthorizeRequest.CodeChallengeMethod, codeChallengeMethod);
+            if (extra != null)
+            {
+                var extraParams = Parameters.FromObject(extra);
+                foreach (var kv in extraParams)
+                    p.AddOptional(kv.Key, kv.Value);
+            }
+            return new RequestUrl(AuthorizeEndpoint).Create(p);
+        }
+
         Parameters prms = extra is null ? null : Parameters.FromObject(extra);
         var url = new RequestUrl(AuthorizeEndpoint).CreateAuthorizeUrl(
             clientId: clientId,
